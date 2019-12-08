@@ -1,9 +1,6 @@
 # WiP-Tidy-Data-dt
 Exercise for R-datatable-Tidy-Data Repo
 
-rmarkdown::render("Women_in_Parliament_Report.Rmd")
-
-
 <div>
   <img src="images/Women_in_Parliament_hex.svg" alt="Women in Parliament Hex Sticker" width="200" > <img src="images/r-datatable-hex.png" alt="data.table Hex Sticker" width="200"> 
 </div>

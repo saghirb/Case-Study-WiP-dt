@@ -19,6 +19,14 @@ output:
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+
+# Load all the libraries that you will use once here
+library(here)
+library(data.table)
+library(countrycode)
+library(ggplot2)
+library(magrittr)
+library(gghighlight)
 ```
 
 # Case Study: Women in Parliament
@@ -27,6 +35,17 @@ knitr::opts_chunk$set(echo = TRUE)
 
 *Explore the geographical and time trends for the percentage of women in 
 national parliaments.*
+
+## Questions
+
+The objective is to look at the geographical and time trends in the data. We will
+answer the following questions.
+
++ What are the time trends for Portugal?
++ How does Portugal compare to other countries?
++ Which countries have the highest percentage of women in parliament by year?
++ How do continents compare?
++ What are the global trends over time?
 
 ## The World Bank Data 
 
@@ -83,8 +102,6 @@ automatically documented using the datasets provided by the World Bank. Any cont
 with what has been previously written should be double checked.
 
 ```{r dataSource, message=FALSE, echo=FALSE}
-library(here)
-library(data.table)
 wbCSVs <- list.files(here("data"), full.names = FALSE, pattern = "[.]csv$")
 metaInd <- wbCSVs[grepl("indicator", wbCSVs, ignore.case = TRUE)]
 indInfo <- fread(here("data", metaInd), 
@@ -125,10 +142,6 @@ understand the limitations of the data by country.
 # Importing and "Tidy" the data
 
 ```{r readData, warning=FALSE}
-library(data.table)
-library(countrycode)
-library(here)
-
 wip <- fread(here("data", indData), 
             skip = 4, header = TRUE,
             check.names = TRUE)
@@ -156,5 +169,44 @@ setkeyv(WP, c("Indicator.Code", "Continent", "Country.Name", "Country.Code", "Ye
 
 WP
 ```
+
+# Analysis
+
+## Portugal - Trends and Comparisons
+
+> What are the time trends for Portugal?
+
+```{r PTplot}
+WP[Country.Name %in% "Portugal"] %>% 
+ggplot(aes(Year, pctWiP)) +
+  geom_line() + geom_point() +
+  scale_y_continuous(limits=c(0, 50)) +
+  ylab("% Women in Parliament")
+```
+
+> How does Portugal compare to other countries?
+
+We selected six EU countries (due to space limitations) for comparison. It would 
+be better to compare all EU and/or all European countries.
+```{r euPctPlot}
+WP[Country.Name %in% c("Portugal", "Sweden", "Spain", "Hungary", "Romania", 
+                       "Finland", "Germany", "European Union")] %>%
+  ggplot(aes(Year, pctWiP, colour=Country.Name)) +
+  geom_line() +
+  geom_point() +
+  scale_x_continuous(breaks=seq(1990, 2020, 5)) +
+  scale_y_continuous(limits=c(0, 50), 
+                     breaks=seq(0, 50, by=10)) +
+  ggtitle("Women in Parliament: EU Countries") +
+  ylab("% Women in Parliament") +
+  theme(legend.position = "bottom")
+```
+
+
+
+
++ Which countries have the highest percentage of women in parliament by year?
++ How do continents compare?
++ What are the global trends over time?
 
 
