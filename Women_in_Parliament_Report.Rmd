@@ -26,6 +26,7 @@ library(data.table)
 library(countrycode)
 library(ggplot2)
 library(magrittr)
+library(ggrepel)
 library(gghighlight)
 ```
 
@@ -189,17 +190,25 @@ ggplot(aes(Year, pctWiP)) +
 We selected six EU countries (due to space limitations) for comparison. It would 
 be better to compare all EU and/or all European countries.
 ```{r euPctPlot}
-WP[Country.Name %in% c("Portugal", "Sweden", "Spain", "Hungary", "Romania", 
-                       "Finland", "Germany", "European Union")] %>%
-  ggplot(aes(Year, pctWiP, colour=Country.Name)) +
+# Countries to be compared
+cCountries <- c("Portugal", "Sweden", "Spain", "Hungary", "Romania", 
+                       "Finland", "Germany", "European Union")
+
+CC <- WP[Country.Name %in% cCountries][
+  , maxYear:=max(Year), by = .(Country.Name)][
+    Year==maxYear, cLabel:=Country.Name][, maxYear:=NULL]
+
+CC %>%
+  ggplot(aes(Year, pctWiP, colour=Country.Name, label = cLabel)) +
   geom_line() +
   geom_point() +
-  scale_x_continuous(breaks=seq(1990, 2020, 5)) +
-  scale_y_continuous(limits=c(0, 50), 
-                     breaks=seq(0, 50, by=10)) +
+  scale_x_continuous(breaks=seq(1990, 2024, 5)) +
+  scale_y_continuous(limits=c(0, 50), breaks=seq(0, 50, by=10)) +
+  expand_limits(x = 2024) +
+  geom_label_repel(xlim = c(2018, 2024)) +
   ggtitle("Women in Parliament: EU Countries") +
   ylab("% Women in Parliament") +
-  theme(legend.position = "bottom")
+  theme(legend.position = "none")
 ```
 
 
