@@ -1,0 +1,160 @@
+---
+title: "`data.table` Case Study - Women in Parliament"
+author: "Saghir Bashir"
+date: "`r format(Sys.time(), '%a %d %b %Y (%H:%M:%S)')`"
+output:
+  html_document:
+    highlight: tango
+    theme: united
+    toc: yes
+    toc_depth: 3
+    toc_float:
+      collapsed: no
+      smooth_scroll: no
+  pdf_document:
+    toc: yes
+    toc_depth: '3'
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Case Study: Women in Parliament
+
+# Objectives
+
+*Explore the geographical and time trends for the percentage of women in 
+national parliaments.*
+
+## The World Bank Data 
+
+The raw data for *"Proportion of seats held by women in national parliaments"* 
+includes the percentage of women in parliament (_"single or lower parliamentary chambers 
+only"_) by country (region) and year. It can be downloaded from:
+
+- https://data.worldbank.org/indicator/SG.GEN.PARL.ZS 
+
+As part of its "open data" mission the World Bank offers _"free and open access 
+to global development data"_ kindly licensed under the "Creative Commons Attribution 
+4.0 (CC-BY 4.0)".
+
+## Source Data
+
+The data originates from the "Inter-Parliamentary Union" (IPU) which
+provides an *_"Archive of statistical data on the percentage of women in 
+national parliaments"_* going back to 1997 on a monthly basis:
+
+- http://archive.ipu.org/wmn-e/classif-arc.htm
+
+The World Bank data is for “single or lower parliamentary chambers only”, while 
+the IPU also presents data for “Upper Houses or Senates”. Moreover, the IPU provides 
+the actual numbers used to calculate the percentages (which the World Bank does not).
+
+## Data limitations
+
+Take caution when interpreting these data, as parliamentary systems vary from country 
+to country, and in some cases over time. Some of the issues to consider include:
+
+- Who has, and who does not have, the right to become a Member of Parliament (MP)?
+- How does someone become an MP? Through democratic elections? How is "democratic
+election" defined? 
+- What is the real power of MPs and their parliament? Can MPs make a difference?
+
+## Data definitions & assumptions
+
+### "Women"
+
+The definition for “women” is not given, so we will assume that it refers to a 
+binary classification for gender (sex).
+
+### "Country (Region)"
+
+The definition of countries and regions can change over time.  (e.g. formation of new
+countries after conflicts, new member states joining a pre-existing collective). 
+How are these changes reflected in the data? How do they affect the interpretation? 
+
+# Data
+
+Some of the information in this section is a repetition of what has been written but
+it is dervived from the datasets provided by the World Bank. However this section is
+automatically documented using the datasets provided by the World Bank. Any contradictions
+with what has been previously written should be double checked.
+
+```{r dataSource, message=FALSE, echo=FALSE}
+library(here)
+library(data.table)
+wbCSVs <- list.files(here("data"), full.names = FALSE, pattern = "[.]csv$")
+metaInd <- wbCSVs[grepl("indicator", wbCSVs, ignore.case = TRUE)]
+indInfo <- fread(here("data", metaInd), 
+                   header = TRUE)
+indCode <- indInfo[, INDICATOR_CODE]
+indName <- indInfo[, INDICATOR_NAME]
+indNote <- indInfo[, SOURCE_NOTE]
+indOrgn <- indInfo[, SOURCE_ORGANIZATION]
+```
+
+The data was downloaded from the World Bank's data website (https://data.worldbank.org) using 
+indicator code '`r indCode`' ("`r indName`"):
+
+> `r indNote`
+
+## Data Source
+
+The original data source is:
+
+> `r indOrgn`
+
+## Datasets Provided
+
+The World Banks provides the following data files.
+```{r datasetsWB, echo=TRUE}
+wbFiles <- list.files(here("data"), full.names = FALSE)
+indData <- wbFiles[grepl("^API", wbFiles)]
+indMeta <- wbFiles[grepl("Indicator", wbFiles)]
+ctyMeta <- wbFiles[grepl("Country", wbFiles)]
+```
+
++ "**`r indData`**" contains the "`r indName`" data.
++ "**`r indMeta`**" contains the indicator meta data which is as described above. 
++ "**`r ctyMeta`**" contains the Country related meta data that can be useful to
+understand the limitations of the data by country.
+
+
+# Importing and "Tidy" the data
+
+```{r readData, warning=FALSE}
+library(data.table)
+library(countrycode)
+library(here)
+
+wip <- fread(here("data", indData), 
+            skip = 4, header = TRUE,
+            check.names = TRUE)
+
+cl <- as.data.table(codelist)[, .(continent, wb)]
+
+wipcl <- merge(wip, cl, by.x = "Country.Code", by.y = "wb", all.x = TRUE)
+
+setnames(wipcl, c("continent"), c("Continent"))
+
+
+WP <- melt(wipcl,
+           id.vars = c("Continent", "Country.Name", "Country.Code", "Indicator.Code"),
+           measure = patterns("^X"),
+           variable.name = "YearC",
+           value.name = c("pctWiP"),
+           na.rm = TRUE)
+
+WP[, Year := as.numeric(gsub("^X", "", YearC))][
+  , YearC:=NULL]
+
+
+setcolorder(WP, c("Indicator.Code", "Continent", "Country.Name", "Country.Code", "Year", "pctWiP"))
+setkeyv(WP, c("Indicator.Code", "Continent", "Country.Name", "Country.Code", "Year"))
+
+WP
+```
+
+
