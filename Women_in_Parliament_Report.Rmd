@@ -162,7 +162,8 @@ WP <- melt(wipcl,
            na.rm = TRUE)
 
 WP[, Year := as.numeric(gsub("^X", "", YearC))][
-  , YearC:=NULL]
+  , YearC:=NULL][
+  , fYear := factor(Year)]
 
 
 setcolorder(WP, c("Indicator.Code", "Continent", "Country.Name", "Country.Code", "Year", "pctWiP"))
@@ -216,9 +217,32 @@ CC %>%
 
 
 
+## Highest Percentages 
 
-+ Which countries have the highest percentage of women in parliament by year?
-+ How do continents compare?
-+ What are the global trends over time?
+> Which countries have the highest percentage of women in parliament by year?  How do continents compare?
 
+
+## Global Trends
+
+> What are the global trends over time?
+
+What are the trends globally? There are various regions defined in the World Bank
+data. We can plot them and highlight the world "average".
+
+```{r globalTrends, message=FALSE}
+library(gghighlight)
+WP[!is.na(Continent)] %>%
+  ggplot(aes(fYear, pctWiP)) +
+  geom_boxplot(width = 0.25, outlier.size = .5) +
+  geom_point(data=WP[Country.Name=="World",], aes(colour = Country.Name),
+             colour="blue") +
+  geom_line(data=WP[Country.Name=="World",], aes(group = Country.Name),
+            colour="blue") +
+  scale_x_discrete(breaks=seq(1990, 2020, 2)) + 
+  scale_y_continuous(limits=c(0, 70), breaks=seq(0, 70, by=10)) +
+  ggtitle("Women in Parliament: Global Trends") +
+  ylab("% Women in Parliament") +
+  xlab("Year")
+
+```
 
