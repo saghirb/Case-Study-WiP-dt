@@ -28,6 +28,9 @@ library(ggplot2)
 library(magrittr)
 library(ggrepel)
 library(gghighlight)
+
+# Changing default settings here.
+theme_set(theme_classic(base_size = 16))
 ```
 
 # Case Study: Women in Parliament
@@ -95,13 +98,6 @@ The definition of countries and regions can change over time.  (e.g. formation o
 countries after conflicts, new member states joining a pre-existing collective). 
 How are these changes reflected in the data? How do they affect the interpretation? 
 
-# Data
-
-Some of the information in this section is a repetition of what has been written but
-it is dervived from the datasets provided by the World Bank. However this section is
-automatically documented using the datasets provided by the World Bank. Any contradictions
-with what has been previously written should be double checked.
-
 ```{r dataSource, message=FALSE, echo=FALSE}
 wbCSVs <- list.files(here("data"), full.names = FALSE, pattern = "[.]csv$")
 metaInd <- wbCSVs[grepl("indicator", wbCSVs, ignore.case = TRUE)]
@@ -112,17 +108,6 @@ indName <- indInfo[, INDICATOR_NAME]
 indNote <- indInfo[, SOURCE_NOTE]
 indOrgn <- indInfo[, SOURCE_ORGANIZATION]
 ```
-
-The data was downloaded from the World Bank's data website (https://data.worldbank.org) using 
-indicator code '`r indCode`' ("`r indName`"):
-
-> `r indNote`
-
-## Data Source
-
-The original data source is:
-
-> `r indOrgn`
 
 ## Datasets Provided
 
@@ -140,19 +125,18 @@ ctyMeta <- wbFiles[grepl("Country", wbFiles)]
 understand the limitations of the data by country.
 
 
-# Importing and "Tidy" the data
+# Importing and "Tidying" the data
 
 ```{r readData, warning=FALSE}
 wip <- fread(here("data", indData), 
             skip = 4, header = TRUE,
             check.names = TRUE)
 
+# Add Continent to WiP dataset.
 cl <- as.data.table(codelist)[, .(continent, wb)]
 
 wipcl <- merge(wip, cl, by.x = "Country.Code", by.y = "wb", all.x = TRUE)
-
 setnames(wipcl, c("continent"), c("Continent"))
-
 
 WP <- melt(wipcl,
            id.vars = c("Continent", "Country.Name", "Country.Code", "Indicator.Code"),
@@ -161,10 +145,12 @@ WP <- melt(wipcl,
            value.name = c("pctWiP"),
            na.rm = TRUE)
 
+# Note cLabel will be used to label the ends of lines in plots.
 WP[, Year := as.numeric(gsub("^X", "", YearC))][
   , YearC:=NULL][
-  , fYear := factor(Year)]
-
+  , fYear := factor(Year)][
+  , maxYear:=max(Year), by = .(Country.Name)][
+    Year==maxYear, cLabel:=Country.Name][, maxYear:=NULL]
 
 setcolorder(WP, c("Indicator.Code", "Continent", "Country.Name", "Country.Code", "Year", "pctWiP"))
 setkeyv(WP, c("Indicator.Code", "Continent", "Country.Name", "Country.Code", "Year"))
@@ -174,47 +160,60 @@ WP
 
 # Analysis
 
+
 ## Portugal - Trends and Comparisons
 
 > What are the time trends for Portugal?
 
+Let's start by looking at a plot of how Portugal is performing over time.
+
 ```{r PTplot}
 WP[Country.Name %in% "Portugal"] %>% 
 ggplot(aes(Year, pctWiP)) +
-  geom_line() + geom_point() +
+  geom_line() + 
+  geom_point() +
   scale_y_continuous(limits=c(0, 50)) +
   ylab("% Women in Parliament")
 ```
 
-> How does Portugal compare to other countries?
+**Interpretation**
 
-We selected six EU countries (due to space limitations) for comparison. It would 
-be better to compare all EU and/or all European countries.
-```{r euPctPlot}
-# Countries to be compared
-cCountries <- c("Portugal", "Sweden", "Spain", "Hungary", "Romania", 
-                       "Finland", "Germany", "European Union")
+In 1990 Portugal had 7.6% women in parliament (i.e. 12.2 men for each woman), which 
+increased to 34.8% (i.e. 1.87 men for each woman) in 2018. This still falls short 
+of 50% (i.e. point of gender parity in parliament).
 
-CC <- WP[Country.Name %in% cCountries][
-  , maxYear:=max(Year), by = .(Country.Name)][
-    Year==maxYear, cLabel:=Country.Name][, maxYear:=NULL]
+Let's now plot how Portugal compares with other European countries. As a reference
+the European Union and World averages. Finland, Hungary, Sweden and Romania are highlighted
+for discussion.
 
-CC %>%
-  ggplot(aes(Year, pctWiP, colour=Country.Name, label = cLabel)) +
-  geom_line() +
-  geom_point() +
+```{r PTvsEurope, warning=FALSE}
+WP[Continent == "Europe"] %>%
+  ggplot(aes(Year, pctWiP, group=Country.Name, colour = Country.Name, label = cLabel)) +
+  geom_line(colour="grey90") +
+  geom_line(data = WP[Country.Name %in% c("Portugal", "European Union", "World", 
+                                          "Sweden", "Finland", "Hungary", "Romania")],
+            aes(colour = Country.Name)) +
   scale_x_continuous(breaks=seq(1990, 2024, 5)) +
   scale_y_continuous(limits=c(0, 50), breaks=seq(0, 50, by=10)) +
+  ggtitle("Portugal compared to European countries") +
   expand_limits(x = 2024) +
-  geom_label_repel(xlim = c(2018, 2024), 
-                   segment.colour = "grey",
-                   segment.size = 0.25, 
-                   segment.alpha = .5) +
-  ggtitle("Women in Parliament: EU Countries") +
-  ylab("% Women in Parliament") +
-  theme(legend.position = "none")
+  geom_label_repel(data = WP[Country.Name %in% c("Portugal", "European Union", "World", 
+                                                 "Sweden", "Finland", "Hungary", "Romania")],
+                   xlim = c(2018, 2024)) +
+  theme(legend.position = "none") +
+  xlab("Year") +
+  ylab("% Women in Parliament")
+
 ```
 
+**Interpretation**
+
+Portugal has had more women in parliament than the European Union average since 2007
+and since around 2000 compared to the world average. Hungary and Romania both had 
+a higher percentage of women in parliament in 1990 (around the end of the Cold War) 
+than they have had since. The key point to note is that none of these countries 
+reaches equality between males and females in parliament, although Sweden and 
+Finland come closest.
 
 
 ## Highest Percentages 
@@ -234,10 +233,8 @@ library(gghighlight)
 WP[!is.na(Continent)] %>%
   ggplot(aes(fYear, pctWiP)) +
   geom_boxplot(width = 0.25, outlier.size = .5) +
-  geom_point(data=WP[Country.Name=="World",], aes(colour = Country.Name),
-             colour="blue") +
-  geom_line(data=WP[Country.Name=="World",], aes(group = Country.Name),
-            colour="blue") +
+  geom_point(data=WP[Country.Name=="World",], aes(colour = Country.Name), colour="blue") +
+  geom_line(data=WP[Country.Name=="World",], aes(group = Country.Name), colour="blue") +
   scale_x_discrete(breaks=seq(1990, 2020, 2)) + 
   scale_y_continuous(limits=c(0, 70), breaks=seq(0, 70, by=10)) +
   ggtitle("Women in Parliament: Global Trends") +
