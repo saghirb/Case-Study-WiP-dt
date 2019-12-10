@@ -27,7 +27,8 @@ library(countrycode)
 library(ggplot2)
 library(magrittr)
 library(ggrepel)
-library(gghighlight)
+library(knitr)
+library(kableExtra)
 
 # Changing default settings here.
 theme_set(theme_classic(base_size = 16))
@@ -51,7 +52,7 @@ answer the following questions.
 + How do continents compare?
 + What are the global trends over time?
 
-## The World Bank Data 
+# Data Details
 
 The raw data for *"Proportion of seats held by women in national parliaments"* 
 includes the percentage of women in parliament (_"single or lower parliamentary chambers 
@@ -98,6 +99,13 @@ The definition of countries and regions can change over time.  (e.g. formation o
 countries after conflicts, new member states joining a pre-existing collective). 
 How are these changes reflected in the data? How do they affect the interpretation? 
 
+For example, the “European Union” has changed over time. It started in the 1950s as 
+a block of six European countries (known as the “European Community”) and has expanded 
+over the years to 28 countries (with the United Kingdom about to depart). This raises 
+the question of how the European Union average is calculated. For a given year, is it 
+calculated based on the actual member states in that year or on all of the current 
+member states?
+
 ```{r dataSource, message=FALSE, echo=FALSE}
 wbCSVs <- list.files(here("data"), full.names = FALSE, pattern = "[.]csv$")
 metaInd <- wbCSVs[grepl("indicator", wbCSVs, ignore.case = TRUE)]
@@ -109,7 +117,7 @@ indNote <- indInfo[, SOURCE_NOTE]
 indOrgn <- indInfo[, SOURCE_ORGANIZATION]
 ```
 
-## Datasets Provided
+## World Bank Datasets
 
 The World Banks provides the following data files.
 ```{r datasetsWB, echo=TRUE}
@@ -125,7 +133,10 @@ ctyMeta <- wbFiles[grepl("Country", wbFiles)]
 understand the limitations of the data by country.
 
 
-# Importing and "Tidying" the data
+# Data Processing
+
+The World Bank's "Women in Parliament" data are imported and undergo some "tidying"
+before being used for the analyses in the sections below.
 
 ```{r readData, warning=FALSE}
 wip <- fread(here("data", indData), 
@@ -146,13 +157,14 @@ WP <- melt(wipcl,
            na.rm = TRUE)
 
 # Note cLabel will be used to label the ends of lines in plots.
-WP[, Year := as.numeric(gsub("^X", "", YearC))][
-  , YearC:=NULL][
+WP[, `:=`(Year = as.numeric(gsub("^X", "", YearC)), Ratio = (100 - pctWiP)/pctWiP)][
   , fYear := factor(Year)][
   , maxYear:=max(Year), by = .(Country.Name)][
-    Year==maxYear, cLabel:=Country.Name][, maxYear:=NULL]
+    Year==maxYear, cLabel:=Country.Name][
+      , c("maxYear", "YearC"):=NULL]
 
-setcolorder(WP, c("Indicator.Code", "Continent", "Country.Name", "Country.Code", "Year", "pctWiP"))
+setcolorder(WP, c("Indicator.Code", "Continent", "Country.Name", "Country.Code", 
+                  "Year", "pctWiP", "Ratio"))
 setkeyv(WP, c("Indicator.Code", "Continent", "Country.Name", "Country.Code", "Year"))
 
 WP
@@ -167,13 +179,16 @@ WP
 
 Let's start by looking at a plot of how Portugal is performing over time.
 
-```{r PTplot}
+```{r PTplot, warning=FALSE}
 WP[Country.Name %in% "Portugal"] %>% 
 ggplot(aes(Year, pctWiP)) +
-  geom_line() + 
-  geom_point() +
+  geom_line(colour = "blue") + 
+  geom_point(colour = "blue") +
+  scale_x_continuous(breaks=seq(1990, 2020, 5)) +
   scale_y_continuous(limits=c(0, 50)) +
-  ylab("% Women in Parliament")
+  ggtitle("Portugal") +
+  xlab("Year") +
+  ylab("% Women in Parliament") 
 ```
 
 **Interpretation**
@@ -195,12 +210,12 @@ WP[Continent == "Europe"] %>%
             aes(colour = Country.Name)) +
   scale_x_continuous(breaks=seq(1990, 2024, 5)) +
   scale_y_continuous(limits=c(0, 50), breaks=seq(0, 50, by=10)) +
-  ggtitle("Portugal compared to European countries") +
   expand_limits(x = 2024) +
   geom_label_repel(data = WP[Country.Name %in% c("Portugal", "European Union", "World", 
                                                  "Sweden", "Finland", "Hungary", "Romania")],
                    xlim = c(2018, 2024)) +
   theme(legend.position = "none") +
+  ggtitle("Portugal compared to European countries") +
   xlab("Year") +
   ylab("% Women in Parliament")
 
@@ -220,26 +235,99 @@ Finland come closest.
 
 > Which countries have the highest percentage of women in parliament by year?  How do continents compare?
 
+```{r highestContinent, collapse=TRUE}
+hgWiP <- WP[!is.na(Continent)][
+  order(Continent, Year, -pctWiP), head(.SD, 1), by = .(Continent, Year)][
+  , CountryWiP := sprintf("%3.1f%% - %s", pctWiP, Country.Name)][
+  , .(Continent, Year, CountryWiP)]
+
+hgCont <- dcast(hgWiP, Year ~ Continent, value.var = "CountryWiP") 
+
+hgCont %>% 
+  kable(align="clllll") %>% 
+  kable_styling(bootstrap_options = "striped")
+```
+
+## No Women in Parliament
+
+Which countries have no (0%) women in parliament?
+
+```{r zeroWiP, collapse=TRUE}
+zeroWiP <- WP[!is.na(Continent) & pctWiP==0]
+
+zeroYear <- zeroWiP[order(Country.Name), .(Year, Country.Name)][
+  , toString(paste0('"', Country.Name, '"')), by = .(Year)][order(Year)]
+setnames(zeroYear, c("V1"), c("zeroWiP"))
+
+zeroYear %>% 
+  kable(align="ll", col.names = c("Year", "Countries without any Women in Parliament")) %>% 
+  kable_styling(bootstrap_options = "striped") %>% 
+  column_spec(1, bold = T)
+```
+
 
 ## Global Trends
 
 > What are the global trends over time?
 
-What are the trends globally? There are various regions defined in the World Bank
-data. We can plot them and highlight the world "average".
+In the following each country has been plotted as a line and the world "average" is
+highlighted in blue. 
 
-```{r globalTrends, message=FALSE}
-library(gghighlight)
+```{r globalTrendsLines, warning=FALSE}
+WP[!is.na(Continent)] %>%
+  ggplot(aes(Year, pctWiP, group = Country.Name, label = cLabel)) +
+  geom_line(colour="grey90") +
+  geom_line(data=WP[Country.Name=="World"], colour="blue") +
+  expand_limits(x = 2021) +
+  geom_label_repel(data = WP[Country.Name=="World"], 
+                   xlim = c(2018, 2021), colour = "Blue") +
+  theme(legend.position = "none") +
+  scale_x_continuous(breaks=seq(1990, 2021, 5)) +
+  scale_y_continuous(limits=c(0, 70), breaks=seq(0, 70, by=10)) +
+  ggtitle("Women in Parliament: Global Trends") +
+  ylab("% Women in Parliament")
+```
+
+A box whisker plot is better suited to present the variation (uncertainty) over
+time.
+
+```{r globalTrendsBoxplot, message=FALSE}
 WP[!is.na(Continent)] %>%
   ggplot(aes(fYear, pctWiP)) +
   geom_boxplot(width = 0.25, outlier.size = .5) +
-  geom_point(data=WP[Country.Name=="World",], aes(colour = Country.Name), colour="blue") +
-  geom_line(data=WP[Country.Name=="World",], aes(group = Country.Name), colour="blue") +
   scale_x_discrete(breaks=seq(1990, 2020, 2)) + 
   scale_y_continuous(limits=c(0, 70), breaks=seq(0, 70, by=10)) +
-  ggtitle("Women in Parliament: Global Trends") +
+  ggtitle("Box Whisker Plot for countries") +
   ylab("% Women in Parliament") +
   xlab("Year")
+```
 
+**Interpretation**
+
+Although the world average is going up (the blue line) there is still large variation
+between countries. Note that in earlier years fewer countries provided data so there is
+likely to be some bais in the plots above.
+
+# Conclusions
+
+```{r worldConclusions, echo=FALSE}
+# This will return a single value by using [, pctWiP].
+pctWiPLast <- WP[Country.Name=="World"][order(Year), .SD[.N]][, pctWiP]
+ratioWiPLast <- WP[Country.Name=="World"][order(Year), .SD[.N]][, Ratio]
+yearLast <- WP[Country.Name=="World"][order(Year), .SD[.N]][, Year]
+```
+
+In `r yearLast`, globally there were `r sprintf("%3.1f%%", pctWiPLast)` women in parliament, 
+i.e, for every woman in parliament there was `r sprintf("%2.1f", ratioWiPLast)` men 
+in parliament. Whichever way we look at the data the conclusions is that, in general, 
+the percentage of women in parliament is increasing but that gender parity in most 
+parliaments is still far-off.
+
+<hr>
+
+# Session Information
+
+```{r sessionInfo, echo=FALSE}
+sessionInfo()
 ```
 
