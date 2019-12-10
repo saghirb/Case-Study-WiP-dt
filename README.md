@@ -1,9 +1,9 @@
-# WiP-Tidy-Data-dt
-Exercise for R-datatable-Tidy-Data Repo
+# `data.table` Case Study: Women in Parliament
 
-<div>
-  <img src="images/Women_in_Parliament_hex.svg" alt="Women in Parliament Hex Sticker" width="200" > <img src="images/r-datatable-hex.png" alt="data.table Hex Sticker" width="200"> 
-</div>
+
+<center>
+  <img src="images/r-datatable-hex.png" alt="ggplot2 Hex Sticker" width="125"> <img src="images/Women_in_Parliament_hex.svg" alt="Women in Parliament Hex Sticker" width="125"> <img src="images/ggplot2.svg" alt="ggplot2 Hex Sticker" width="125"> <img src="images/rmarkdown.svg" alt="R Markdown Hex Sticker" width="125">
+</center>
 
 <br>
 
@@ -48,14 +48,8 @@ wipdt <- fread("WiP-Data.csv",
                skip = 4, header = TRUE, check.names=TRUE)
 ```
 
-<img src="images/Women_in_Parliament_rect.svg" alt="Women in Parliament Bonus Image" height="400"> 
+<hr>
 
-## Acknowledgements
+<img src="images/Women_in_Parliament_rect.svg" alt="Women in Parliament Bonus Image" height="150"> <img src="images/r-datatable-hex.png" alt="ggplot2 Hex Sticker" width="125"> <img src="images/Women_in_Parliament_hex.svg" alt="Women in Parliament Hex Sticker" width="125"> <img src="images/ggplot2.svg" alt="ggplot2 Hex Sticker" width="125"> <img src="images/rmarkdown.svg" alt="R Markdown Hex Sticker" width="125">
 
-The images were create by [Marina Costa](https://cargocollective.com/marinacostaportfolio/ABOUT) 
-guided by [Andreia Carlos](https://github.com/agrou) and myself. 
-
-You can view Marina's great portfolio at:
-
-+ https://cargocollective.com/marinacostaportfolio
-
+<hr>
