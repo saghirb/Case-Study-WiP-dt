@@ -304,14 +304,13 @@ WP[!is.na(Continent)] %>%
 
 **Interpretation**
 
-Although the world average is going up (the blue line) there is still large variation
-between countries. Note that in earlier years fewer countries provided data so there is
-likely to be some bais in the plots above.
+Although the world average is going up there is still large variation between countries. 
+Note that in earlier years fewer countries provided data so there is likely to be some
+bais in the plots above.
 
 # Conclusions
 
 ```{r worldConclusions, echo=FALSE}
-# This will return a single value by using [, pctWiP].
 pctWiPLast <- WP[Country.Name=="World"][order(Year), .SD[.N]][, pctWiP]
 ratioWiPLast <- WP[Country.Name=="World"][order(Year), .SD[.N]][, Ratio]
 yearLast <- WP[Country.Name=="World"][order(Year), .SD[.N]][, Year]
