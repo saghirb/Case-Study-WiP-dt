@@ -15,8 +15,7 @@ The raw data for *"Proportion of seats held by women in national parliaments"*
 
 + https://data.worldbank.org/indicator/SG.GEN.PARL.ZS 
 
-As part of its "open data" mission the World Bank kindly offers *"free and open access to 
-global development data"* licensed under the "Creative Commons Attribution 4.0 (CC-BY 4.0)".
+As part of its "open data" mission the World Bank kindly offers *"free and open access to global development data"* licensed under the "Creative Commons Attribution 4.0 (CC-BY 4.0)".
 
 ### Source Data
 
