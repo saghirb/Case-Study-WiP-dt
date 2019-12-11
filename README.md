@@ -11,7 +11,7 @@
 ## World Bank "Women in Parliament" Data
 
 The raw data for *"Proportion of seats held by women in national parliaments"* 
-(_"single or lower parliamentary chambers only"_) by can be directly downloaded from:
+(_"single or lower parliamentary chambers only"_) can be directly downloaded from:
 
 + https://data.worldbank.org/indicator/SG.GEN.PARL.ZS 
 
