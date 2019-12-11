@@ -103,10 +103,6 @@ wbCSVs <- list.files(here("data"), full.names = FALSE, pattern = "[.]csv$")
 metaInd <- wbCSVs[grepl("indicator", wbCSVs, ignore.case = TRUE)]
 indInfo <- fread(here("data", metaInd), 
                    header = TRUE)
-indCode <- indInfo[, INDICATOR_CODE]
-indName <- indInfo[, INDICATOR_NAME]
-indNote <- indInfo[, SOURCE_NOTE]
-indOrgn <- indInfo[, SOURCE_ORGANIZATION]
 ```
 
 ## Datasets Provided
@@ -173,6 +169,8 @@ ggplot(aes(Year, pctWiP)) +
   geom_line() + 
   geom_point() +
   scale_y_continuous(limits=c(0, 50)) +
+  scale_x_continuous(limits=c(1990, 2018), breaks = unique(WP$Year)) +
+  theme(axis.text.x = element_text(angle = 90, vjust = 1.0, hjust = 1.0)) +
   ylab("% Women in Parliament")
 ```
 
