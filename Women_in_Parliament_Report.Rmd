@@ -111,10 +111,7 @@ wbCSVs <- list.files(here("data"), full.names = FALSE, pattern = "[.]csv$")
 metaInd <- wbCSVs[grepl("indicator", wbCSVs, ignore.case = TRUE)]
 indInfo <- fread(here("data", metaInd), 
                    header = TRUE)
-indCode <- indInfo[, INDICATOR_CODE]
 indName <- indInfo[, INDICATOR_NAME]
-indNote <- indInfo[, SOURCE_NOTE]
-indOrgn <- indInfo[, SOURCE_ORGANIZATION]
 ```
 
 ## World Bank Datasets
