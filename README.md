@@ -1,7 +1,7 @@
 # `data.table` Case Study: Women in Parliament
 
 <div>
-<img src="images/r-datatable-hex.png" alt="ggplot2 Hex Sticker" width="125"> <img src="images/Women_in_Parliament_hex.svg" alt="Women in Parliament Hex Sticker" width="125"> <img src="images/ggplot2.svg" alt="ggplot2 Hex Sticker" width="125"> <img src="images/rmarkdown.svg" alt="R Markdown Hex Sticker" width="125">
+<img src="images/r-datatable-hex.png" alt="ggplot2 Hex Sticker" width="125"> <img src="images/Women_in_Parliament_hex.svg" alt="Women in Parliament Hex Sticker" width="125"> <img src="images/ggplot2.svg" alt="ggplot2 Hex Sticker" width="125">
 </div>
 
 ## Objectives
@@ -33,7 +33,7 @@ global development data"* licensed under the "Creative Commons Attribution 4.0 (
 <hr>
 
 <div>
-<img src="images/Women_in_Parliament_rect.svg" alt="Women in Parliament Bonus Image" height="150"> <img src="images/r-datatable-hex.png" alt="ggplot2 Hex Sticker" width="125"> <img src="images/Women_in_Parliament_hex.svg" alt="Women in Parliament Hex Sticker" width="125"> <img src="images/ggplot2.svg" alt="ggplot2 Hex Sticker" width="125"> <img src="images/rmarkdown.svg" alt="R Markdown Hex Sticker" width="125">
+<img src="images/Women_in_Parliament_rect.svg" alt="Women in Parliament Bonus Image" height="150"> <img src="images/r-datatable-hex.png" alt="ggplot2 Hex Sticker" width="125"> <img src="images/Women_in_Parliament_hex.svg" alt="Women in Parliament Hex Sticker" width="125"> <img src="images/ggplot2.svg" alt="ggplot2 Hex Sticker" width="125">
 </div>
 
 <hr>
