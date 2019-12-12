@@ -312,6 +312,9 @@ wWP <- rbindlist(list(WP[!is.na(Continent)],
 wWP %>%
   ggplot(aes(fYear, pctWiP)) +
   geom_boxplot(width = 0.4, outlier.size = .5) +
+  geom_line(data = WP[Country.Name=="World"][
+    , .(fYear, pctWiP, Country.Name)], 
+    aes(fYear, y = pctWiP, group = Country.Name), colour = "darkred") +
   scale_x_discrete(breaks=seq(1990, 2020, 5)) + 
   scale_y_continuous(limits=c(0, 70), breaks=seq(0, 70, by=20)) +
   facet_wrap(~Continent) +
