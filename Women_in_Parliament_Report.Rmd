@@ -253,11 +253,12 @@ Which countries have no (0%) women in parliament?
 zeroWiP <- WP[!is.na(Continent) & pctWiP==0]
 
 zeroYear <- zeroWiP[order(Country.Name), .(Year, Country.Name)][
-  , toString(paste0('"', Country.Name, '"')), by = .(Year)][order(Year)]
+  , `:=`(N = max(.N)), .(Year)][
+  , toString(paste0('"', Country.Name, '"')), by = .(Year, N)][order(Year)]
 setnames(zeroYear, c("V1"), c("zeroWiP"))
 
 zeroYear %>% 
-  kable(align="ll", col.names = c("Year", "Countries without any Women in Parliament")) %>% 
+  kable(align="lrl", col.names = c("Year", "Num", "Countries without any Women in Parliament")) %>% 
   kable_styling(bootstrap_options = "striped") %>% 
   column_spec(1, bold = T)
 ```
