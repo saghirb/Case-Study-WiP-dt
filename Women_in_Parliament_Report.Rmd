@@ -350,7 +350,7 @@ parliaments is still far-off.
 
 # Session Information
 
-```{r sessionInfo, echo=FALSE}
+```{r sessionInfo, echo=TRUE}
 sessionInfo()
 ```
 
