@@ -321,7 +321,8 @@ wWP %>%
   ggtitle("Box Whisker Plot for countries") +
   ylab("% Women in Parliament") +
   xlab("Year")+
-  theme_classic(base_size=11)
+  theme_classic(base_size=11) +
+  labs(caption = "The red line is the world average.")
 ```
 
 
