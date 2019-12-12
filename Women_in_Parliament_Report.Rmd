@@ -296,14 +296,36 @@ WP[!is.na(Continent)] %>%
   scale_y_continuous(limits=c(0, 70), breaks=seq(0, 70, by=10)) +
   ggtitle("Box Whisker Plot for countries") +
   ylab("% Women in Parliament") +
-  xlab("Year")
+  xlab("Year") 
 ```
+
+### Continents
+
+We can look at the global trends by continent for comparison.
+
+```{r continent TrendsBoxplot, message=FALSE}
+# First add observations for "World" as a continent.
+wWP <- rbindlist(list(WP[!is.na(Continent)], 
+                 WP[!is.na(Continent)][, Continent:="World"]))
+
+wWP %>%
+  ggplot(aes(fYear, pctWiP)) +
+  geom_boxplot(width = 0.4, outlier.size = .5) +
+  scale_x_discrete(breaks=seq(1990, 2020, 5)) + 
+  scale_y_continuous(limits=c(0, 70), breaks=seq(0, 70, by=20)) +
+  facet_wrap(~Continent) +
+  ggtitle("Box Whisker Plot for countries") +
+  ylab("% Women in Parliament") +
+  xlab("Year")+
+  theme_classic(base_size=11)
+```
+
 
 **Interpretation**
 
 Although the world average is going up there is still large variation between countries. 
-Note that in earlier years fewer countries provided data so there is likely to be some
-bais in the plots above.
+The interpretation by continent is similar. Note that in earlier years fewer countries 
+provided data so there is likely to be some bais in the plots above.
 
 # Conclusions
 
